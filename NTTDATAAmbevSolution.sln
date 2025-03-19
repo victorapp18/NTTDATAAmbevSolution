@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTTDATAmbevSolution.API", "NTTDATAmbevSolution.API\NTTDATAmbevSolution.API.csproj", "{9536F29C-8B96-4AA8-8B45-F4D1844B931A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTTDATAmbevSolution.API", "NTTDATAmbevSolution.API\NTTDATAmbevSolution.API.csproj", "{9536F29C-8B96-4AA8-8B45-F4D1844B931A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTTDATAmbevSolution.Application", "NTTDATAmbevSolution.Application\NTTDATAmbevSolution.Application.csproj", "{CB494EA5-7159-445E-A6A1-20BB2A183B9D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTTDATAmbevSolution.Application", "NTTDATAmbevSolution.Application\NTTDATAmbevSolution.Application.csproj", "{CB494EA5-7159-445E-A6A1-20BB2A183B9D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTTDATAmbevSolution.Domain", "NTTDATAmbevSolution.Domain\NTTDATAmbevSolution.Domain.csproj", "{DD50424B-617A-46AC-A077-2D70698621D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTTDATAmbevSolution.Domain", "NTTDATAmbevSolution.Domain\NTTDATAmbevSolution.Domain.csproj", "{DD50424B-617A-46AC-A077-2D70698621D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTTDATAmbevSolution.Infrastructure", "NTTDATAmbevSolution.Infrastructure\NTTDATAmbevSolution.Infrastructure.csproj", "{F8DB6CA5-AB20-4AF4-8C43-9C2EA7917EF7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTTDATAmbevSolution.Infrastructure", "NTTDATAmbevSolution.Infrastructure\NTTDATAmbevSolution.Infrastructure.csproj", "{F8DB6CA5-AB20-4AF4-8C43-9C2EA7917EF7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTTDATAmbevSolution.Tests", "NTTDATAmbevSolution.Tests\NTTDATAmbevSolution.Tests.csproj", "{99909ED3-238B-4971-86BB-41990C290559}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{F8DB6CA5-AB20-4AF4-8C43-9C2EA7917EF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8DB6CA5-AB20-4AF4-8C43-9C2EA7917EF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8DB6CA5-AB20-4AF4-8C43-9C2EA7917EF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99909ED3-238B-4971-86BB-41990C290559}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99909ED3-238B-4971-86BB-41990C290559}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99909ED3-238B-4971-86BB-41990C290559}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99909ED3-238B-4971-86BB-41990C290559}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

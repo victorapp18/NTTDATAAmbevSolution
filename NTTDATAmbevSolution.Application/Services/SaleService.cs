@@ -19,9 +19,15 @@ namespace NTTDATAmbevSolution.Application.Services
 
         public SaleDto CreateSale(SaleDto saleDto)
         {
+            if (saleDto.Items.Any(item => item.Quantity > 20))
+                throw new InvalidOperationException("Não pode vender mais que 20 unidades");
+
+            var sales = _saleRepository.GetAll().ToList();
+            var nextId = sales.Any() ? sales.Max(s => s.Id) + 1 : 1;
+
             var sale = new Sale
             {
-                Id = _saleRepository.GetAll().Count() + 1, // Pegando a contagem das vendas já cadastradas
+                Id = nextId,
                 Date = saleDto.Date,
                 Customer = saleDto.Customer,
                 Items = saleDto.Items.Select(item => new SaleItem
@@ -33,7 +39,6 @@ namespace NTTDATAmbevSolution.Application.Services
                 }).ToList()
             };
 
-            // 🔴 Atualizar o total com base nos itens
             sale.TotalAmount = sale.Items.Sum(item => (item.Quantity * item.UnitPrice) - item.Discount);
 
             _saleRepository.Add(sale);
@@ -98,6 +103,9 @@ namespace NTTDATAmbevSolution.Application.Services
             var sale = _saleRepository.GetById(saleDto.Id);
             if (sale == null) return;
 
+            if (saleDto.Items.Any(item => item.Quantity > 20))
+                throw new InvalidOperationException("Não pode vender mais que 20 unidades");
+
             sale.Date = saleDto.Date;
             sale.Customer = saleDto.Customer;
             sale.Items = saleDto.Items.Select(i => new SaleItem
@@ -121,9 +129,9 @@ namespace NTTDATAmbevSolution.Application.Services
         private decimal CalculateDiscount(int quantity, decimal unitPrice)
         {
             if (quantity >= 10 && quantity <= 20)
-                return unitPrice * quantity * 0.20m;
+                return unitPrice * quantity * 0.20m; // 20% de desconto
             if (quantity >= 4)
-                return unitPrice * quantity * 0.10m;
+                return unitPrice * quantity * 0.10m; // 10% de desconto
             return 0;
         }
     }
