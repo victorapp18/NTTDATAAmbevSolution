@@ -1,30 +1,44 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using NTTDATAmbevSolution.Application.Interfaces;
-using NTTDATAmbevSolution.Application.Services;
-using NTTDATAmbevSolution.Domain.Interfaces;
-using NTTDATAmbevSolution.Infrastructure.Repositories;
+﻿using Microsoft.OpenApi.Models;
+using NTTDATAAmbev.Application.Interfaces;
+using NTTDATAAmbev.Application.Services;
+using NTTDATAAmbev.Domain.Interfaces;
+using NTTDATAAmbev.Infra.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Add services to the container.
 
-builder.Services.AddSingleton<ISaleRepository, InMemorySaleRepository>(); 
-builder.Services.AddScoped<ISaleService, SaleService>();
+builder.Services.AddControllers();
+
+// Register InMemory repository and service (singleton para manter dados na memória enquanto o app roda)
+builder.Services.AddSingleton<ISaleRepository, InMemorySaleRepository>();
+builder.Services.AddSingleton<ISaleService, SaleService>();
+
+// Add swagger for API documentation
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "NTTDATAAmbev API", Version = "v1" });
+});
 
 var app = builder.Build();
+
+// Configure the HTTP request pipeline.
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "NTTDATAAmbev API v1");
+        c.RoutePrefix = string.Empty; // Swagger UI na raiz
+    });
 }
 
 app.UseHttpsRedirection();
+
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
