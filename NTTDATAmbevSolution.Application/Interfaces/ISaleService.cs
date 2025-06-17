@@ -1,7 +1,8 @@
-﻿using NTTDATAAmbev.Application.DTOs;
+﻿// Application/Interfaces/ISaleService.cs
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NTTDATAAmbev.Application.DTOs;
 
 namespace NTTDATAAmbev.Application.Interfaces
 {

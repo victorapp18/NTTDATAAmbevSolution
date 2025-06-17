@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Application/Services/SaleService.cs
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,13 +13,12 @@ namespace NTTDATAAmbev.Application.Services
     public class SaleService : ISaleService
     {
         private readonly ISaleRepository _saleRepository;
-        public SaleService(ISaleRepository saleRepository)
-            => _saleRepository = saleRepository;
+        public SaleService(ISaleRepository saleRepository) => _saleRepository = saleRepository;
 
         public async Task<IEnumerable<SaleDto>> GetAllAsync()
         {
             var sales = await _saleRepository.GetAllAsync();
-            return sales.Select(s => ToDto(s));
+            return sales.Select(ToDto);
         }
 
         public async Task<SaleDto?> GetByIdAsync(Guid id)
@@ -49,7 +49,7 @@ namespace NTTDATAAmbev.Application.Services
                     Cancelled = false
                 }).ToList()
             };
-            // Calcula TotalAmount antes de salvar no repositório
+
             sale.TotalAmount = sale.Items.Sum(i => i.Total);
 
             await _saleRepository.AddAsync(sale);
@@ -63,7 +63,6 @@ namespace NTTDATAAmbev.Application.Services
 
             sale.Cancelled = true;
             sale.Items.ForEach(i => i.Cancelled = true);
-
             await _saleRepository.UpdateAsync(sale);
             return true;
         }

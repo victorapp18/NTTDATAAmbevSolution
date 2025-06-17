@@ -1,7 +1,8 @@
-﻿using NTTDATAAmbev.Domain.Entities;
+﻿// Domain/Interfaces/ISaleRepository.cs
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NTTDATAAmbev.Domain.Entities;
 
 namespace NTTDATAAmbev.Domain.Interfaces
 {
@@ -11,6 +12,5 @@ namespace NTTDATAAmbev.Domain.Interfaces
         Task<Sale?> GetByIdAsync(Guid id);
         Task AddAsync(Sale sale);
         Task UpdateAsync(Sale sale);
-        Task DeleteAsync(Guid id);
     }
 }
