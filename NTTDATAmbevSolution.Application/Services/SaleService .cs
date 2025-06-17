@@ -31,7 +31,7 @@ namespace NTTDATAAmbev.Application.Services
         {
             if (saleDto == null) throw new ArgumentNullException(nameof(saleDto));
 
-            var sale = new NTTDATAAmbev.Domain.Entities.Sale
+            var sale = new Sale
             {
                 Id = Guid.NewGuid(),
                 SaleNumber = saleDto.SaleNumber,
@@ -49,6 +49,7 @@ namespace NTTDATAAmbev.Application.Services
                     Cancelled = false
                 }).ToList()
             };
+            // Calcula TotalAmount antes de salvar no repositório
             sale.TotalAmount = sale.Items.Sum(i => i.Total);
 
             await _saleRepository.AddAsync(sale);
@@ -67,24 +68,28 @@ namespace NTTDATAAmbev.Application.Services
             return true;
         }
 
-        private static SaleDto ToDto(NTTDATAAmbev.Domain.Entities.Sale sale)
-            => new SaleDto
+        private static SaleDto ToDto(Sale sale)
+        {
+            var items = sale.Items.Select(i => new SaleItemDto
+            {
+                ProductId = i.ProductId,
+                ProductName = i.ProductName,
+                Quantity = i.Quantity,
+                UnitPrice = i.UnitPrice,
+                Discount = i.Discount,
+                Total = i.Total,
+                Cancelled = i.Cancelled
+            }).ToList();
+
+            return new SaleDto
             {
                 Id = sale.Id,
                 SaleNumber = sale.SaleNumber,
                 Date = sale.Date,
-                TotalAmount = sale.TotalAmount,
-                Cancelled = sale.Cancelled,
-                Items = sale.Items.Select(i => new SaleItemDto
-                {
-                    ProductId = i.ProductId,
-                    ProductName = i.ProductName,
-                    Quantity = i.Quantity,
-                    UnitPrice = i.UnitPrice,
-                    Discount = i.Discount,
-                    Total = i.Total,
-                    Cancelled = i.Cancelled
-                }).ToList()
+                Items = items,
+                TotalAmount = items.Sum(i => i.Total),
+                Cancelled = sale.Cancelled
             };
+        }
     }
 }
