@@ -1,139 +1,212 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Moq;
 using Xunit;
-using NTTDATAmbevSolution.Application.DTOs;
-using NTTDATAmbevSolution.Application.Services;
-using NTTDATAmbevSolution.Domain.Entities;
-using NTTDATAmbevSolution.Domain.Interfaces;
+using NTTDATAAmbev.Application.DTOs;
+using NTTDATAAmbev.Application.Services;
+using NTTDATAAmbev.Domain.Entities;
+using NTTDATAAmbev.Domain.Interfaces;
 
-namespace NTTDATAmbevSolution.Tests.Services
+namespace NTTDATAAmbev.Application.Tests
 {
     public class SaleServiceTests
     {
-        private readonly Mock<ISaleRepository> _saleRepositoryMock;
-        private readonly SaleService _saleService;
+        private readonly Mock<ISaleRepository> _repoMock;
+        private readonly SaleService _service;
 
         public SaleServiceTests()
         {
-            _saleRepositoryMock = new Mock<ISaleRepository>();
-            _saleRepositoryMock.Setup(repo => repo.GetAll()).Returns(new List<Sale>()); // Retorna uma lista vazia para o mock
-            _saleService = new SaleService(_saleRepositoryMock.Object);
+            _repoMock = new Mock<ISaleRepository>();
+            _service = new SaleService(_repoMock.Object);
         }
 
         [Fact]
-        public void CreateSale_ShouldNotApplyDiscount_WhenQuantityIsLessThan4()
+        public async Task GetAllAsync_ReturnsMappedDtos()
         {
             // Arrange
-            var saleDto = new SaleDto
+            var sales = new List<Sale>
             {
-                Date = DateTime.Now,
-                Customer = "Cliente A",
-                Items = new List<SaleItemDto>
+                new Sale
                 {
-                    new SaleItemDto { ProductId = 1, Quantity = 2, UnitPrice = 100 } // Sem desconto
+                    Id = Guid.NewGuid(),
+                    SaleNumber = "S1",
+                    Date = DateTime.UtcNow,
+                    Cancelled = false,
+                    Items = new List<SaleItem>
+                    {
+                        new SaleItem
+                        {
+                            Id = Guid.NewGuid(),
+                            ProductId = Guid.NewGuid(),
+                            ProductName = "P1",
+                            Quantity = 2,
+                            UnitPrice = 10m,
+                            Discount = 0m,
+                            Total = 20m,
+                            Cancelled = false
+                        }
+                    }
                 }
             };
+            _repoMock.Setup(r => r.GetAllAsync())
+                     .ReturnsAsync(sales);
 
             // Act
-            var sale = _saleService.CreateSale(saleDto);
+            var dtos = await _service.GetAllAsync();
 
             // Assert
-            Assert.Equal(200, sale.TotalAmount); // (2 * 100) - 0
-            Assert.Equal(0, sale.Items.First().Discount);
+            Assert.Single(dtos);
+            var dto = dtos.First();
+            Assert.Equal("S1", dto.SaleNumber);
+            Assert.Equal(20m, dto.TotalAmount);
+            Assert.False(dto.Cancelled);
+            Assert.Single(dto.Items);
+            Assert.Equal("P1", dto.Items[0].ProductName);
         }
 
         [Fact]
-        public void CreateSale_ShouldApply10PercentDiscount_WhenQuantityIsBetween4And9()
+        public async Task GetByIdAsync_NotFound_ReturnsNull()
         {
             // Arrange
-            var saleDto = new SaleDto
-            {
-                Date = DateTime.Now,
-                Customer = "Cliente B",
-                Items = new List<SaleItemDto>
-                {
-                    new SaleItemDto { ProductId = 1, Quantity = 5, UnitPrice = 100 } // 10% de desconto
-                }
-            };
+            var id = Guid.NewGuid();
+            _repoMock.Setup(r => r.GetByIdAsync(id))
+                     .ReturnsAsync((Sale?)null);
 
             // Act
-            var sale = _saleService.CreateSale(saleDto);
+            var result = await _service.GetByIdAsync(id);
 
             // Assert
-            Assert.Equal(450, sale.TotalAmount); // (5 * 100) - (5 * 100 * 10%)
-            Assert.Equal(50, sale.Items.First().Discount); // 5 * 100 * 10%
+            Assert.Null(result);
         }
 
         [Fact]
-        public void CreateSale_ShouldApply20PercentDiscount_WhenQuantityIsBetween10And20()
+        public async Task GetByIdAsync_Found_ReturnsDto()
         {
             // Arrange
-            var saleDto = new SaleDto
+            var id = Guid.NewGuid();
+            var sale = new Sale
             {
-                Date = DateTime.Now,
-                Customer = "Cliente C",
-                Items = new List<SaleItemDto>
-                {
-                    new SaleItemDto { ProductId = 1, Quantity = 15, UnitPrice = 50 } // 20% de desconto
-                }
+                Id = id,
+                SaleNumber = "S2",
+                Date = DateTime.UtcNow,
+                Cancelled = false,
+                Items = new List<SaleItem>()
             };
+            _repoMock.Setup(r => r.GetByIdAsync(id))
+                     .ReturnsAsync(sale);
 
             // Act
-            var sale = _saleService.CreateSale(saleDto);
+            var dto = await _service.GetByIdAsync(id);
 
             // Assert
-            Assert.Equal(600, sale.TotalAmount); // (15 * 50) - (15 * 50 * 20%)
-            Assert.Equal(150, sale.Items.First().Discount); // 15 * 50 * 20%
+            Assert.NotNull(dto);
+            Assert.Equal("S2", dto!.SaleNumber);
+            Assert.Equal(id, dto.Id);
         }
 
         [Fact]
-        public void CreateSale_ShouldThrowException_WhenQuantityExceedsLimit()
+        public async Task CreateAsync_NullDto_ThrowsArgumentNullException()
         {
-            // Arrange
-            var saleDto = new SaleDto
-            {
-                Date = DateTime.Now,
-                Customer = "Cliente Teste",
-                Items = new List<SaleItemDto>
-                {
-                    new SaleItemDto { ProductId = 2, Quantity = 25, UnitPrice = 30 } // Excede o limite de 20 unidades
-                }
-            };
-
             // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => _saleService.CreateSale(saleDto));
-            Assert.Equal("Não pode vender mais que 20 unidades", exception.Message);
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _service.CreateAsync(null!));
         }
 
         [Fact]
-        public void CreateSale_ShouldAssignCorrectId_WhenNewSaleIsAdded()
+        public async Task CreateAsync_ValidDto_CallsAddAndReturnsId()
         {
             // Arrange
-            var existingSales = new List<Sale>
+            var dto = new SaleDto
             {
-                new Sale { Id = 1, Date = DateTime.Now, Customer = "Cliente X", Items = new List<SaleItem>() },
-                new Sale { Id = 2, Date = DateTime.Now, Customer = "Cliente Y", Items = new List<SaleItem>() }
-            };
-
-            _saleRepositoryMock.Setup(repo => repo.GetAll()).Returns(existingSales);
-
-            var saleDto = new SaleDto
-            {
-                Date = DateTime.Now,
-                Customer = "Cliente Z",
+                SaleNumber = "S3",
+                Date = DateTime.UtcNow,
                 Items = new List<SaleItemDto>
                 {
-                    new SaleItemDto { ProductId = 3, Quantity = 5, UnitPrice = 20 } // Deve receber ID 3
+                    new SaleItemDto
+                    {
+                        ProductId = Guid.NewGuid(),
+                        ProductName = "P2",
+                        Quantity = 1,
+                        UnitPrice = 5m,
+                        Discount = 0m,
+                        Total = 5m,
+                        Cancelled = false
+                    }
                 }
             };
 
+            Sale? captured = null;
+            _repoMock.Setup(r => r.AddAsync(It.IsAny<Sale>()))
+                     .Callback<Sale>(s => captured = s)
+                     .Returns(Task.CompletedTask);
+
             // Act
-            var sale = _saleService.CreateSale(saleDto);
+            var newId = await _service.CreateAsync(dto);
 
             // Assert
-            Assert.Equal(3, sale.Id); 
+            Assert.NotEqual(Guid.Empty, newId);
+            Assert.NotNull(captured);
+            Assert.Equal(dto.SaleNumber, captured!.SaleNumber);
+            Assert.Equal(5m, captured.TotalAmount);
+            _repoMock.Verify(r => r.AddAsync(It.IsAny<Sale>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CancelAsync_NotFound_ReturnsFalse()
+        {
+            // Arrange
+            var id = Guid.NewGuid();
+            _repoMock.Setup(r => r.GetByIdAsync(id))
+                     .ReturnsAsync((Sale?)null);
+
+            // Act
+            var result = await _service.CancelAsync(id);
+
+            // Assert
+            Assert.False(result);
+            _repoMock.Verify(r => r.UpdateAsync(It.IsAny<Sale>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task CancelAsync_Found_SetsCancelledAndCallsUpdate()
+        {
+            // Arrange
+            var id = Guid.NewGuid();
+            var sale = new Sale
+            {
+                Id = id,
+                SaleNumber = "S4",
+                Date = DateTime.UtcNow,
+                Cancelled = false,
+                Items = new List<SaleItem>
+                {
+                    new SaleItem
+                    {
+                        Id = Guid.NewGuid(),
+                        ProductId = Guid.NewGuid(),
+                        ProductName = "P3",
+                        Quantity = 3,
+                        UnitPrice = 2m,
+                        Discount = 0m,
+                        Total = 6m,
+                        Cancelled = false
+                    }
+                }
+            };
+            _repoMock.Setup(r => r.GetByIdAsync(id))
+                     .ReturnsAsync(sale);
+            _repoMock.Setup(r => r.UpdateAsync(sale))
+                     .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _service.CancelAsync(id);
+
+            // Assert
+            Assert.True(result);
+            Assert.True(sale.Cancelled);
+            Assert.All(sale.Items, i => Assert.True(i.Cancelled));
+            _repoMock.Verify(r => r.UpdateAsync(sale), Times.Once);
         }
     }
 }

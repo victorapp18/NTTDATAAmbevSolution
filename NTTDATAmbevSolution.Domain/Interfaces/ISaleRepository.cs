@@ -1,14 +1,16 @@
-﻿using System.Collections.Generic;
-using NTTDATAmbevSolution.Domain.Entities;
+﻿using NTTDATAAmbev.Domain.Entities;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace NTTDATAmbevSolution.Domain.Interfaces
+namespace NTTDATAAmbev.Domain.Interfaces
 {
     public interface ISaleRepository
     {
-        Sale Add(Sale sale);
-        Sale GetById(int id);
-        IEnumerable<Sale> GetAll();
-        void Update(Sale sale);
-        void Delete(int id);
+        Task<IEnumerable<Sale>> GetAllAsync();
+        Task<Sale?> GetByIdAsync(Guid id);
+        Task AddAsync(Sale sale);
+        Task UpdateAsync(Sale sale);
+        Task DeleteAsync(Guid id);
     }
 }

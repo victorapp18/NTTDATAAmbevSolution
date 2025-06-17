@@ -1,30 +1,44 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using NTTDATAmbevSolution.Application.Interfaces;
-using NTTDATAmbevSolution.Application.Services;
-using NTTDATAmbevSolution.Domain.Interfaces;
-using NTTDATAmbevSolution.Infrastructure.Repositories;
+﻿using Microsoft.OpenApi.Models;
+using NTTDATAAmbev.Application.Interfaces;
+using NTTDATAAmbev.Application.Services;
+using NTTDATAAmbev.Domain.Interfaces;
+using NTTDATAAmbev.Infrastructure.Data;
+using NTTDATAAmbev.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Configura o Kestrel para escutar na porta 5000 (HTTP)
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5000); // Isso garante que a aplicação funcione no Docker
+});
 
-builder.Services.AddSingleton<ISaleRepository, InMemorySaleRepository>(); 
-builder.Services.AddScoped<ISaleService, SaleService>();
+// Controllers
+builder.Services.AddControllers();
+
+// InMemory repository e serviço
+builder.Services.AddSingleton<ISaleRepository, InMemorySaleRepository>();
+builder.Services.AddSingleton<ISaleService, SaleService>();
+
+// Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "NTTDATAAmbev API", Version = "v1" });
+});
 
 var app = builder.Build();
 
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// HTTPS removido pois o container só está com HTTP (porta 5000)
+// app.UseHttpsRedirection();
+
 app.UseAuthorization();
 app.MapControllers();
-
 app.Run();

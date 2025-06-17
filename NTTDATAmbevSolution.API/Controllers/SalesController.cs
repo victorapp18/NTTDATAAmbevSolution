@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using NTTDATAmbevSolution.Application.Interfaces;
-using NTTDATAmbevSolution.Application.DTOs;
+using NTTDATAAmbev.Application.DTOs;
+using NTTDATAAmbev.Application.Interfaces;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace NTTDATAmbevSolution.API.Controllers
+namespace NTTDATAAmbev.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -16,46 +18,50 @@ namespace NTTDATAmbevSolution.API.Controllers
             _saleService = saleService;
         }
 
-        [HttpPost]
-        public IActionResult CreateSale([FromBody] SaleDto saleDto)
-        {
-            if (saleDto == null || saleDto.Items == null || saleDto.Items.Count == 0)
-                return BadRequest("A venda deve conter pelo menos um item.");
-
-            var sale = _saleService.CreateSale(saleDto);
-            return CreatedAtAction(nameof(GetSaleById), new { id = sale.Id }, sale);
-        }
-
-        [HttpGet("{id}")]
-        public IActionResult GetSaleById(int id)
-        {
-            var sale = _saleService.GetSaleById(id);
-            if (sale == null) return NotFound();
-
-            return Ok(sale);
-        }
-
+        // GET api/sales
         [HttpGet]
-        public IActionResult GetAllSales()
+        public async Task<ActionResult<IEnumerable<SaleDto>>> GetAll()
         {
-            var sales = _saleService.GetAllSales();
+            var sales = await _saleService.GetAllAsync();
             return Ok(sales);
         }
 
-        [HttpPut("{id}")]
-        public IActionResult UpdateSale(int id, [FromBody] SaleDto saleDto)
+        // GET api/sales/{id}
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<SaleDto>> GetById(Guid id)
         {
-            if (saleDto == null || saleDto.Id != id)
-                return BadRequest("Dados inválidos para atualização.");
-
-            _saleService.UpdateSale(saleDto);
-            return NoContent();
+            var sale = await _saleService.GetByIdAsync(id);
+            if (sale == null) return NotFound();
+            return Ok(sale);
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult DeleteSale(int id)
+        // POST api/sales
+        [HttpPost]
+        public async Task<ActionResult<Guid>> Create([FromBody] SaleDto saleDto)
         {
-            _saleService.DeleteSale(id);
+            if (saleDto == null) return BadRequest();
+
+            try
+            {
+                var newId = await _saleService.CreateAsync(saleDto);
+                return CreatedAtAction(nameof(GetById), new { id = newId }, newId);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // PUT api/sales/{id}/cancel
+        [HttpPut("{id:guid}/cancel")]
+        public async Task<IActionResult> Cancel(Guid id)
+        {
+            var cancelled = await _saleService.CancelAsync(id);
+            if (!cancelled) return NotFound();
             return NoContent();
         }
     }

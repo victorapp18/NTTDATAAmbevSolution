@@ -1,0 +1,14 @@
+version: '3.4'
+
+services:
+  servicecontrolapi:
+    build:
+      context: .
+      dockerfile: /NTTDATAmbevSolution.API/Dockerfile
+    ports:
+      - "5000:5000" # Porta exposta no host
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000 # Faz o app escutar no container
+    volumes:
+      - ./NTTDATAmbevSolution.API/appsettings.json:/app/appsettings.json

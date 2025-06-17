@@ -1,30 +1,42 @@
-﻿using NTTDATAmbevSolution.Domain.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using NTTDATAAmbev.Domain.Interfaces;
 
-namespace NTTDATAmbevSolution.Domain.Entities
+namespace NTTDATAAmbev.Domain.Entities
 {
-    public class Sale
+    public class Sale : IEntity
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
+        public string SaleNumber { get; set; }
         public DateTime Date { get; set; }
-        public string Customer { get; set; }
-        public decimal TotalAmount { get; set; }
+        public Customer Customer { get; set; }
+        public Branch Branch { get; set; }
         public List<SaleItem> Items { get; set; } = new();
-        public SaleStatus Status { get; set; }
+        public decimal TotalAmount { get; set; }
+        public bool Cancelled { get; set; }
+    }
 
-        public void CalculateTotal()
-        {
-            TotalAmount = 0;
-            foreach (var item in Items)
-            {
-                TotalAmount += item.TotalPrice;
-            }
-        }
+    public class Customer
+    {
+        public Guid CustomerId { get; set; }
+        public string Name { get; set; }
+    }
 
-        public void CancelSale()
-        {
-            Status = SaleStatus.Cancelled;
-        }
+    public class Branch
+    {
+        public Guid BranchId { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class SaleItem
+    {
+        public Guid Id { get; set; }
+        public Guid ProductId { get; set; }
+        public string ProductName { get; set; }
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal Discount { get; set; }
+        public decimal Total { get; set; }
+        public bool Cancelled { get; set; }
     }
 }
