@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Application/DTOs/SaleDto.cs
+using System;
 using System.Collections.Generic;
 
 namespace NTTDATAAmbev.Application.DTOs
