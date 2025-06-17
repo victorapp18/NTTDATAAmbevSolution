@@ -7,6 +7,12 @@ using NTTDATAAmbev.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configura o Kestrel para escutar na porta 5000 (HTTP)
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5000); // Isso garante que a aplicação funcione no Docker
+});
+
 // Controllers
 builder.Services.AddControllers();
 
@@ -30,7 +36,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// HTTPS removido pois o container só está com HTTP (porta 5000)
+// app.UseHttpsRedirection();
+
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
