@@ -1,6 +1,5 @@
 ﻿using NTTDATAAmbev.Domain.Entities;
 using NTTDATAAmbev.Domain.Interfaces;
-using ServiceControl.Domain.Entities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

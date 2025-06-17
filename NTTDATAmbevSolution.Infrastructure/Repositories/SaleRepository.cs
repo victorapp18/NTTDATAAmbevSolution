@@ -2,7 +2,6 @@
 using NTTDATAAmbev.Domain.Entities;
 using NTTDATAAmbev.Domain.Interfaces;
 using NTTDATAAmbev.Infrastructure.Data;
-using ServiceControl.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,9 +13,7 @@ namespace NTTDATAAmbev.Infrastructure.Repositories
         private readonly ApplicationDbContext _context;
 
         public SaleRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+            => _context = context;
 
         public async Task AddAsync(Sale sale)
         {
@@ -36,20 +33,14 @@ namespace NTTDATAAmbev.Infrastructure.Repositories
         }
 
         public async Task<IEnumerable<Sale>> GetAllAsync()
-        {
-            return await _context.Sales
-                .Include(s => s.Items)
-                .AsNoTracking()
-                .ToListAsync();
-        }
+            => await _context.Sales.Include(s => s.Items)
+                                   .AsNoTracking()
+                                   .ToListAsync();
 
         public async Task<Sale?> GetByIdAsync(Guid id)
-        {
-            return await _context.Sales
-                .Include(s => s.Items)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(s => s.Id == id);
-        }
+            => await _context.Sales.Include(s => s.Items)
+                                   .AsNoTracking()
+                                   .FirstOrDefaultAsync(s => s.Id == id);
 
         public async Task UpdateAsync(Sale sale)
         {

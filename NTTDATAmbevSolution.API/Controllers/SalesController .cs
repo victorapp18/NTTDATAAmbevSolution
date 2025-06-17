@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using NTTDATAAmbev.Application.DTOs;
 using NTTDATAAmbev.Application.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NTTDATAAmbev.API.Controllers
 {
@@ -36,10 +39,16 @@ namespace NTTDATAAmbev.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Guid>> Create([FromBody] SaleDto saleDto)
         {
+            if (saleDto == null) return BadRequest();
+
             try
             {
                 var newId = await _saleService.CreateAsync(saleDto);
                 return CreatedAtAction(nameof(GetById), new { id = newId }, newId);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (InvalidOperationException ex)
             {
@@ -49,7 +58,7 @@ namespace NTTDATAAmbev.API.Controllers
 
         // PUT api/sales/{id}/cancel
         [HttpPut("{id:guid}/cancel")]
-        public async Task<ActionResult> Cancel(Guid id)
+        public async Task<IActionResult> Cancel(Guid id)
         {
             var cancelled = await _saleService.CancelAsync(id);
             if (!cancelled) return NotFound();

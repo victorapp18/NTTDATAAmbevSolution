@@ -2,19 +2,19 @@
 using NTTDATAAmbev.Application.Interfaces;
 using NTTDATAAmbev.Application.Services;
 using NTTDATAAmbev.Domain.Interfaces;
-using NTTDATAAmbev.Infra.Data;
+using NTTDATAAmbev.Infrastructure.Data;
+using NTTDATAAmbev.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// Controllers
 builder.Services.AddControllers();
 
-// Register InMemory repository and service (singleton para manter dados na memória enquanto o app roda)
+// InMemory repository e serviço
 builder.Services.AddSingleton<ISaleRepository, InMemorySaleRepository>();
 builder.Services.AddSingleton<ISaleService, SaleService>();
 
-// Add swagger for API documentation
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -23,22 +23,14 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "NTTDATAAmbev API v1");
-        c.RoutePrefix = string.Empty; // Swagger UI na raiz
-    });
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

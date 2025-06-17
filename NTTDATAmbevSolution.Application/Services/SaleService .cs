@@ -1,109 +1,90 @@
-﻿// ServiceControl.Application/Services/RegistroService.cs
-using Microsoft.Extensions.Logging;
-using ServiceControl.Application.DTOs;
-using ServiceControl.Application.Interfaces;
-using ServiceControl.Domain.Entities;
-using ServiceControl.Domain.Enums;
-using ServiceControl.Domain.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NTTDATAAmbev.Application.DTOs;
+using NTTDATAAmbev.Application.Interfaces;
+using NTTDATAAmbev.Domain.Entities;
+using NTTDATAAmbev.Domain.Interfaces;
 
-namespace ServiceControl.Application.Services
+namespace NTTDATAAmbev.Application.Services
 {
-    public class RegistroService : ISaleService
+    public class SaleService : ISaleService
     {
-        private readonly IClimaService _climaService;
-        private readonly IRegistroRepository _repository;
-        private readonly IServiceBClient _serviceB;
-        private readonly ILogger<RegistroService> _logger;
+        private readonly ISaleRepository _saleRepository;
+        public SaleService(ISaleRepository saleRepository)
+            => _saleRepository = saleRepository;
 
-        public RegistroService(
-            IClimaService climaService,
-            IRegistroRepository repository,
-            IServiceBClient serviceB,
-            ILogger<RegistroService> logger)
+        public async Task<IEnumerable<SaleDto>> GetAllAsync()
         {
-            _climaService = climaService;
-            _repository = repository;
-            _serviceB = serviceB;
-            _logger = logger;
+            var sales = await _saleRepository.GetAllAsync();
+            return sales.Select(s => ToDto(s));
         }
 
-        public async Task<RegistroOutputDto> ProcessarRegistroAsync(RegistroInputDto dto)
+        public async Task<SaleDto?> GetByIdAsync(Guid id)
         {
-            try
+            var sale = await _saleRepository.GetByIdAsync(id);
+            return sale == null ? null : ToDto(sale);
+        }
+
+        public async Task<Guid> CreateAsync(SaleDto saleDto)
+        {
+            if (saleDto == null) throw new ArgumentNullException(nameof(saleDto));
+
+            var sale = new NTTDATAAmbev.Domain.Entities.Sale
             {
-                _logger.LogInformation("Iniciando processamento do registro para {Cidade}", dto.Cidade);
-
-                var clima = await _climaService.ObterClimaAsync(dto.Cidade);
-                var condicao = clima switch
-                {
-                    >= 15 and <= 30 => CondicaoClimatica.OtimasCondicoes,
-                    >= 10 and < 15 => CondicaoClimatica.Agradavel,
-                    _ => CondicaoClimatica.Impraticavel
-                };
-
-                var registro = new Sale
+                Id = Guid.NewGuid(),
+                SaleNumber = saleDto.SaleNumber,
+                Date = saleDto.Date,
+                Cancelled = false,
+                Items = saleDto.Items.Select(i => new SaleItem
                 {
                     Id = Guid.NewGuid(),
-                    ServicoExecutado = dto.ServicoExecutado,
-                    Data = dto.Data,
-                    Responsavel = dto.Responsavel,
-                    Cidade = dto.Cidade,
-                    Temperatura = clima,
-                    CondicaoClimatica = condicao.ToString()
-                };
+                    ProductId = i.ProductId,
+                    ProductName = i.ProductName,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice,
+                    Discount = i.Discount,
+                    Total = (i.UnitPrice * i.Quantity) - i.Discount,
+                    Cancelled = false
+                }).ToList()
+            };
+            sale.TotalAmount = sale.Items.Sum(i => i.Total);
 
-                await _repository.SalvarAsync(registro);
-                _logger.LogInformation("Registro salvo com sucesso — ID: {Id}", registro.Id);
-
-                await _serviceB.EnviarRegistroAsync(registro);
-                _logger.LogInformation("Registro enviado para ServiceB — ID: {Id}", registro.Id);
-
-                return new RegistroOutputDto
-                {
-                    Id = registro.Id,
-                    ServicoExecutado = registro.ServicoExecutado,
-                    Data = registro.Data,
-                    Responsavel = registro.Responsavel,
-                    Temperatura = registro.Temperatura,
-                    CondicaoClimatica = registro.CondicaoClimatica,
-                    Cidade = registro.Cidade
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Falha ao processar registro para {Cidade}", dto.Cidade);
-                throw;
-            }
+            await _saleRepository.AddAsync(sale);
+            return sale.Id;
         }
 
-        public async Task<IEnumerable<RegistroOutputDto>> ObterTodosAsync()
+        public async Task<bool> CancelAsync(Guid id)
         {
-            try
-            {
-                _logger.LogInformation("Recuperando todos os registros...");
-                var registros = await _repository.ObterTodosAsync();
-                _logger.LogInformation("Encontrados {Count} registros", registros.Count());
+            var sale = await _saleRepository.GetByIdAsync(id);
+            if (sale == null) return false;
 
-                return registros.Select(r => new RegistroOutputDto
-                {
-                    Id = r.Id,
-                    ServicoExecutado = r.ServicoExecutado,
-                    Data = r.Data,
-                    Responsavel = r.Responsavel,
-                    Temperatura = r.Temperatura,
-                    CondicaoClimatica = r.CondicaoClimatica,
-                    Cidade = r.Cidade
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Falha ao recuperar registros");
-                throw;
-            }
+            sale.Cancelled = true;
+            sale.Items.ForEach(i => i.Cancelled = true);
+
+            await _saleRepository.UpdateAsync(sale);
+            return true;
         }
+
+        private static SaleDto ToDto(NTTDATAAmbev.Domain.Entities.Sale sale)
+            => new SaleDto
+            {
+                Id = sale.Id,
+                SaleNumber = sale.SaleNumber,
+                Date = sale.Date,
+                TotalAmount = sale.TotalAmount,
+                Cancelled = sale.Cancelled,
+                Items = sale.Items.Select(i => new SaleItemDto
+                {
+                    ProductId = i.ProductId,
+                    ProductName = i.ProductName,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice,
+                    Discount = i.Discount,
+                    Total = i.Total,
+                    Cancelled = i.Cancelled
+                }).ToList()
+            };
     }
 }
