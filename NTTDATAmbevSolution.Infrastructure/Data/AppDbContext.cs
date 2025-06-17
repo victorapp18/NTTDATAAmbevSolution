@@ -1,17 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NTTDATAAmbev.Domain.Entities;
-using ServiceControl.Domain.Entities;
-using System.Collections.Generic;
-using System.Reflection.Emit;
 
 namespace NTTDATAAmbev.Infrastructure.Data
 {
     public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options)
-        {
-        }
+            : base(options) { }
 
         public DbSet<Sale> Sales { get; set; }
         public DbSet<SaleItem> SaleItems { get; set; }
@@ -24,6 +19,8 @@ namespace NTTDATAAmbev.Infrastructure.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.SaleNumber).IsRequired();
+                entity.Property(e => e.Date).IsRequired();
+                entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
 
                 entity.HasMany(e => e.Items)
                       .WithOne()
@@ -34,7 +31,9 @@ namespace NTTDATAAmbev.Infrastructure.Data
             modelBuilder.Entity<SaleItem>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                // ou composite key: entity.HasKey(e => new { e.ProductId, e.Quantity }); se fizer sentido
+                entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+                entity.Property(e => e.Discount).HasPrecision(18, 2);
+                entity.Property(e => e.Total).HasPrecision(18, 2);
             });
         }
     }

@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Polly" Version="8.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\NTTDATAmbevSolution.Domain\NTTDATAmbevSolution.Domain.csproj" />
     <ProjectReference Include="..\NTTDATAmbevSolution.Infrastructure\NTTDATAmbevSolution.Infrastructure.csproj" />
   </ItemGroup>
