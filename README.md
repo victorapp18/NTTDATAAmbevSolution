@@ -1,104 +1,130 @@
-# NTTDATAmbevSolution - API de Vendas
+# NTTDATAAmbevSolution – API de Vendas
 
-##  Sobre o Projeto
-A **NTTDATAmbevSolution** é uma API para gerenciamento de vendas, aplicando automaticamente descontos baseados na quantidade de itens comprados. O projeto segue uma **arquitetura em camadas**, garantindo organização e escalabilidade.
-
-## 🛠️ Tecnologias Utilizadas
-- **.NET 8** (C#)
-- **ASP.NET Core** (Web API)
-- **Dependency Injection**
-- **Arquitetura em Camadas** (Domain, Application, Infrastructure, API)
-- **Testes Unitários** (opcional)
-
-##  Estrutura do Projeto
-
-```
-NTTDATAmbevSolution/
-│── NTTDATAmbevSolution.Domain/       # Entidades e Interfaces
-│── NTTDATAmbevSolution.Application/  # Lógica de Negócio (Services e DTOs)
-│── NTTDATAmbevSolution.Infrastructure/ # Repositórios (armazenamento em memória)
-│── NTTDATAmbevSolution.API/          # Endpoints da API
-│── NTTDATAmbevSolution.Tests/        # Testes unitários
-└── README.md                         # Documentação
-```
-
-## Funcionalidades
- Criar uma venda
- Buscar uma venda por ID
- Listar todas as vendas
- Atualizar uma venda
- Deletar uma venda
- Aplicar descontos automáticos com base na quantidade
-
-##  Regras de Desconto
-A API aplica descontos conforme a quantidade comprada:
-
-| Quantidade | Desconto Aplicado |
-|------------|------------------|
-| 1 a 3      | **0%** |
-| 4 a 9      | **10%** |
-| 10 a 20    | **20%** |
-| 21 ou mais | ❌ **Erro (venda não permitida)** |
-
-##  Endpoints da API
-
-### Criar uma Venda
-**POST /api/sales**
-```json
-{
-  "customer": "Cliente X",
-  "date": "2025-03-19T12:00:00",
-  "items": [
-    { "productId": 3, "quantity": 15, "unitPrice": 50 }
-  ]
-}
-```
-**Resposta:**
-```json
-{
-  "id": 3,
-  "date": "2025-03-19T12:00:00",
-  "customer": "Cliente X",
-  "totalAmount": 600,
-  "items": [
-    { "productId": 3, "quantity": 15, "unitPrice": 50, "discount": 150 }
-  ]
-}
-```
-
-### Listar Todas as Vendas
-**GET /api/sales**
-
-### Buscar Venda por ID
-**GET /api/sales/{id}**
-
-### Atualizar uma Venda
-**PUT /api/sales/{id}**
-
-### Deletar uma Venda
-**DELETE /api/sales/{id}**
-
-## 🏗️ Como Executar o Projeto
-1. **Clone o repositório:**
-   ```sh
-   git clone https://github.com/seu-usuario/NTTDATAmbevSolution.git
-   ```
-2. **Acesse a pasta do projeto:**
-   ```sh
-   cd NTTDATAmbevSolution
-   ```
-3. **Rode o projeto:**
-   ```sh
-   dotnet run --project NTTDATAmbevSolution.API
-   ```
-4. **Acesse a API no navegador ou no Postman:**
-   ```sh
-   http://localhost:5000/swagger
-   ```
-
-##  Testando a API
-Para testar os endpoints, utilize o **Postman** ou a interface **Swagger** disponível no endereço acima.
+Este projeto é uma **API para gerenciamento de vendas**, desenvolvida com **.NET 8** utilizando arquitetura em camadas, princípios **SOLID**, **DDD** e boas práticas modernas. O objetivo é simular o registro e controle de vendas com regras reais de negócio.
 
 ---
-📌 **Dúvidas?** Sinta-se à vontade para abrir uma **issue** no repositório! 🚀
 
+## Objetivo do Projeto
+
+Implementar uma API RESTful capaz de registrar vendas contendo:
+
+- Número da venda  
+- Data  
+- Cliente (ID e nome - simulado)  
+- Filial (ID e nome - simulado)  
+- Lista de produtos (com quantidade, preço unitário e desconto)  
+- Cálculo automático do total  
+- Cancelamento de venda e itens  
+- Aplicação de regras de desconto por quantidade  
+
+Além disso, eventos como `SaleCreated`, `SaleModified`, `SaleCancelled` e `ItemCancelled` são **simulados via logs**.
+
+---
+
+## Tecnologias Utilizadas
+
+- .NET 8  
+- C#  
+- ASP.NET Core Web API  
+- Docker e Docker Hub  
+- Swagger (Swashbuckle)  
+- Arquitetura em Camadas com DDD  
+- Repositório In-Memory  
+
+---
+
+## Regras de Negócio Atendidas
+
+| Quantidade | Desconto Aplicado | Observações |
+|------------|--------------------|-------------|
+| < 4 itens  | **0%**             | Desconto não permitido |
+| 4 a 9      | **10%**            | Aplicado automaticamente |
+| 10 a 20    | **20%**            | Aplicado automaticamente |
+| > 20       | **Rejeitado**      | Venda não permitida |
+
+---
+
+## Como Executar o Projeto
+
+### Usando Docker (recomendado)
+
+> A imagem já está disponível no Docker Hub: [`victorapp18/nttambev`](https://hub.docker.com/r/victorapp18/nttambev)
+
+1. Clone o repositório:
+
+```bash
+git clone https://github.com/victorapp18/NTTDATAAmbevSolution.git
+cd NTTDATAAmbevSolution
+```
+
+2. Construa e execute com Docker Compose:
+
+```bash
+docker-compose up --build
+```
+
+3. Acesse a API em:
+
+```
+http://localhost:5000/swagger
+```
+
+---
+
+### Executando localmente via .NET CLI
+
+1. Navegue até o projeto da API:
+
+```bash
+cd NTTDATAAmbevSolution.API
+```
+
+2. Execute o projeto:
+
+```bash
+dotnet run
+```
+
+3. Acesse:
+
+```
+http://localhost:5129/swagger
+```
+
+---
+
+## Endpoints Principais
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET    | /api/sales           | Lista todas as vendas |
+| GET    | /api/sales/{id}      | Consulta uma venda por ID |
+| POST   | /api/sales           | Cria uma nova venda |
+| PUT    | /api/sales/{id}/cancel | Cancela uma venda e seus itens |
+
+---
+
+## Estrutura do Projeto
+
+```
+NTTDATAAmbevSolution
+├── API                 // Camada de apresentação
+├── Application         // Serviços de aplicação, DTOs, interfaces
+├── Domain              // Entidades de domínio e regras de negócio
+├── Infrastructure      // Repositórios e acesso a dados (InMemory)
+```
+
+---
+
+## Observações
+
+- Os dados de cliente e filial estão representados por IDs e nomes estáticos para simular o padrão de identidade externa.
+- A lógica de desconto é processada internamente no momento da criação.
+- Eventos são apenas **logados no console**, simulando uma publicação de mensagens.
+
+---
+
+## Links Importantes
+
+- **GitHub**: [https://github.com/victorapp18/NTTDATAAmbevSolution](https://github.com/victorapp18/NTTDATAAmbevSolution)  
+- **Docker Hub**: [https://hub.docker.com/r/victorapp18/nttambev](https://hub.docker.com/r/victorapp18/nttambev)
