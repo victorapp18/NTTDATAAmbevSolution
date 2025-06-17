@@ -1,4 +1,3 @@
-// API/Controllers/SalesController.cs
 using Microsoft.AspNetCore.Mvc;
 using NTTDATAAmbev.Application.DTOs;
 using NTTDATAAmbev.Application.Interfaces;
